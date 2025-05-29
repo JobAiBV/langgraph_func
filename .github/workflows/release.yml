@@ -1,12 +1,9 @@
 name: Trunk-Based Release
 
 on:
-  # 1) Automatic patch bump on merges into main
   push:
     branches:
       - main
-
-  # 2) Manual bump override
   workflow_dispatch:
     inputs:
       level:
@@ -20,8 +17,6 @@ permissions:
 jobs:
   bump-and-publish:
     runs-on: ubuntu-latest
-    # → run on either a push to main (but not the Action’s own push)
-    #    or a manual dispatch
     if: >-
       (
         github.event_name == 'push' &&
@@ -45,7 +40,7 @@ jobs:
         run: pip install poetry
 
       - name: Determine bump level
-        id: bump
+        id: determine-level
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "level=${{ github.event.inputs.level }}" >> $GITHUB_OUTPUT
@@ -54,13 +49,16 @@ jobs:
           fi
 
       - name: Bump version, commit & tag
+        id: bump-version
         env:
-          LEVEL: ${{ steps.bump.outputs.level }}
+          LEVEL: ${{ steps.determine-level.outputs.level }}
         run: |
-          echo "Bumping version with: $LEVEL"
+          # bump pyproject.toml, capture the new version
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
-          echo "new_version=v$NEW_VER" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+
+          # commit + tag
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add pyproject.toml
@@ -74,11 +72,8 @@ jobs:
       - name: Create Release & upload artifacts
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ steps.bump.outputs.new_version }}
+          tag: v${{ steps.bump-version.outputs.new_version }}
           artifacts: dist/*.tar.gz,dist/*.whl
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-
-
-
