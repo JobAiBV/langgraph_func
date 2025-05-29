@@ -1,52 +1,59 @@
-name: Release Package
+name: Trunk-Based Release
 
+# Trigger on commits to main *and* on any tag push
 on:
-  workflow_dispatch:
-    inputs:
-      level:
-        description: "Version bump level (patch, minor, major)"
-        required: true
-        default: "patch"
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
-  bump-version:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+  bump-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - run: pip install poetry
-      - name: Bump version, commit & push tag
-        env:
-          LEVEL: ${{ github.event.inputs.level }}
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Determine bump level
+        id: bump
         run: |
+          # Are we running on a tag?  If so, bump major; otherwise bump minor
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "level=major" >> $GITHUB_OUTPUT
+          else
+            echo "level=minor" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump version, commit & tag
+        env:
+          LEVEL: ${{ steps.bump.outputs.level }}
+        run: |
+          echo "Bumping version with: $LEVEL"
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git commit -am "Bump version to v$NEW_VER"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add pyproject.toml
+          git commit -m "chore: bump version to v$NEW_VER"
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: bump-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - run: pip install poetry
-
-      - name: Build artifacts
+      - name: Build distribution
         run: |
           poetry build
 
@@ -55,13 +62,13 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          release_name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Assets
+      - name: Upload release assets
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
