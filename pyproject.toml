@@ -5,7 +5,7 @@ description = "LangGraph Azure Function Agents"
 authors = ["Example <example@example.com>"]
 packages = [
     
-    { include = "langraph_api" }
+    { include = "langgraph_api" }
 ]
 
 [tool.poetry.dependencies]
