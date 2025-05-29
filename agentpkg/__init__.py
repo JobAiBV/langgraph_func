@@ -21,6 +21,7 @@ from agentpkg.graph_endpoints.registry import APIRegistry, Endpoint, registry
 from .logger import get_logger
 from .settings import settings
 from .func_app_builder import FuncAppBuilder
+from .docs_function import bp_docs
 
 __all__ = [
     "call_azure_function",
@@ -38,5 +39,6 @@ __all__ = [
     "get_logger",
     "settings",
     "FuncAppBuilder",
+    "bp_docs",
     "__version__",
 ]
