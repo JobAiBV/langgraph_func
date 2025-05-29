@@ -1,12 +1,15 @@
 [tool.poetry]
 name = "langgraph_func"
-version = "0.2.0"
+version = "0.2.1"
 description = "LangGraph Azure Function Agents"
 authors = ["job van Creij jobvancreij@gmail.com"]
 packages = [
     
-    { include = "langgraph_func" }
+    { include = "langgraph_func" },
+    { path = "docs/_build/html/**/*", format = ["sdist", "wheel"] }
+
 ]
+
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -30,7 +33,3 @@ sphinx = "*"
 myst-parser = "*"
 toml = "*"
 
-[tool.poetry]
-include = [
-    { path = "docs/_build/html/**/*", format = ["sdist", "wheel"] }
-]
