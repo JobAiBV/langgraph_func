@@ -6,7 +6,6 @@ from pydantic import BaseModel
 from langgraph.graph.state import CompiledStateGraph
 from agentpkg.graph_helpers.wrappers import validate_body
 from agentpkg.graph_endpoints.registry import Endpoint, registry
-from agentpkg.settings import settings
 from agentpkg.logger import get_logger
 from agentpkg.graph_endpoints.graph_executor_service import GraphExecutorService
 from agentpkg.graph_helpers.call_subgraph import FUNCTION_KEY
@@ -31,7 +30,7 @@ class EndpointGenerator(Generic[TInput, TOutput]):
         graph: CompiledStateGraph,
         input_model: Type[TInput],
         output_model: Type[TOutput],
-        auth_level: func.AuthLevel = func.AuthLevel.ANONYMOUS
+        auth_level: func.AuthLevel
     ):
         self.blueprint = blueprint
         self.graph = graph
@@ -47,7 +46,7 @@ class EndpointGenerator(Generic[TInput, TOutput]):
         @self.blueprint.route(
             route=name,
             methods=methods,
-            auth_level=settings.get_auth_level()
+            auth_level=self.auth_level
         )
         @validate_body(self.input_model)
         async def handle_extraction_request(req: func.HttpRequest) -> func.HttpResponse:
@@ -89,7 +88,10 @@ class EndpointGenerator(Generic[TInput, TOutput]):
             )
         )
 
-    def generate_and_register(self, name: str, methods: List[str]) -> "EndpointGenerator":
+    def generate_and_register(self,
+                              name: str,
+                              methods: List[str]
+                              ) -> "EndpointGenerator":
         """
         Create the decorated Azure Function route *and* register it.
         Returns self to allow chaining.

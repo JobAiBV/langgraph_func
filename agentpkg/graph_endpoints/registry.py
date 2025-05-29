@@ -7,9 +7,6 @@ import json
 import zlib
 from collections import defaultdict
 
-from agentpkg.settings import settings
-
-
 def mermaid_live_link(code: str, theme: str = "default") -> str:
     payload = json.dumps({"code": code, "mermaid": {"theme": theme}}, separators=(",", ":")).encode()
     compressed = zlib.compress(payload, level=9)

@@ -3,11 +3,8 @@ from pydantic import BaseModel
 
 from langgraph.graph.state import CompiledStateGraph
 from agentpkg.logger import get_logger
-
+from agentpkg.types import TInput, TOutput
 logger = get_logger()
-
-TInput = TypeVar("TInput", bound=BaseModel)
-TOutput = TypeVar("TOutput", bound=BaseModel)
 
 
 class GraphExecutorService(Generic[TInput, TOutput]):

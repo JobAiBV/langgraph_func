@@ -1,0 +1,13 @@
+
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "FUNCTION_BASE_URL": "http://localhost:7072/api",
+    "OPENAI_API_KEY": "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",
+    "AUTH_MODE": "function",
+    "LOG_LEVEL": "DEBUG"
+
+  },
+  "ConnectionStrings": {}
+}

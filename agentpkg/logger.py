@@ -1,12 +1,11 @@
 # logger.py
 import logging
-from agentpkg.settings import settings
+from dotenv.variables import Literal
 
-def get_logger(name: str = "app") -> logging.Logger:
+def get_logger(level: str = "DEBUG",  name: str = "app") -> logging.Logger:
     logger = logging.getLogger(name)
-
     if not logger.handlers:
-        logger.setLevel(settings.log_level)
+        logger.setLevel(level)
 
         handler = logging.StreamHandler()
         formatter = logging.Formatter(

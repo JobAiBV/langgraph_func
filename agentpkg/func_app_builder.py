@@ -1,26 +1,24 @@
 import azure.functions as func
-from .config import Settings
-from .logger import get_logger
 from .docs_function import bp_docs
 
+
 class FuncAppBuilder:
-    """Utility to build an Azure Functions app with configured settings."""
+    """A class to build and register Azure Function blueprints."""
 
-    def __init__(self, settings: Settings | None = None):
-        self.settings = settings or Settings()
-        self.logger = get_logger(__name__)
-        self.app = func.FunctionApp(
-            http_auth_level=self.settings.get_auth_level()
-        )
-        # register documentation endpoints automatically
-        self.add_blueprint(bp_docs)
+    def __init__(self):
+        self._func_app = func.FunctionApp()
+        self._func_app.register_functions(bp_docs)  # Register the documentation blueprint
 
-    def add_blueprint(self, bp: func.Blueprint) -> "FuncAppBuilder":
-        """Register a blueprint on the underlying FunctionApp."""
-        self.logger.debug("Registering blueprint %s", bp.name)
-        self.app.register_blueprint(bp)
+    def register_blueprint(self, blueprint) -> "FuncAppBuilder":
+        """
+        Adds an endpoint to the blueprint using the provided graph, input, and output models.
+        """
+        self._func_app.register_functions(blueprint)
         return self
 
-    def build(self) -> func.FunctionApp:
-        """Return the configured FunctionApp."""
-        return self.app
+    @property
+    def func_app(self):
+        """
+        Returns the built blueprint.
+        """
+        return self._func_app

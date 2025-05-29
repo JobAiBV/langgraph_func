@@ -18,10 +18,11 @@ from agentpkg.graph_helpers.wrappers import validate_body, skip_if_locked
 from agentpkg.graph_endpoints.graph_executor_factory import EndpointGenerator
 from agentpkg.graph_endpoints.graph_executor_service import GraphExecutorService
 from agentpkg.graph_endpoints.registry import APIRegistry, Endpoint, registry
-from .logger import get_logger
-from .settings import settings
-from .func_app_builder import FuncAppBuilder
-from .docs_function import bp_docs
+from agentpkg.logger import get_logger
+from agentpkg.func_app_builder import FuncAppBuilder
+from agentpkg.docs_function import bp_docs
+from agentpkg.blueprint_builder import BlueprintBuilder
+from agentpkg.func_app_builder import FuncAppBuilder
 
 __all__ = [
     "call_azure_function",
@@ -37,8 +38,8 @@ __all__ = [
     "Endpoint",
     "registry",
     "get_logger",
-    "settings",
     "FuncAppBuilder",
+    "BlueprintBuilder",
     "bp_docs",
     "__version__",
 ]
