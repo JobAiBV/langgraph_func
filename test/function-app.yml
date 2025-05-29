@@ -4,7 +4,7 @@ swagger:
   auth: FUNCTION
   ui_route: docs
 
-apis:
+blueprints:
   blueprint_a:
     path: blueprint_a
     description: |

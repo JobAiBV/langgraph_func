@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "langgraph_api"
+name = "langraph_api"
 version = "1.0.5"
 description = "LangGraph Azure Function Agents"
 authors = ["Example <example@example.com>"]
 packages = [
     
-    { include = "langgraph_api" }
+    { include = "langraph_api" }
 ]
 
 [tool.poetry.dependencies]
