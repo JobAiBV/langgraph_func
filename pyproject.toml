@@ -4,10 +4,10 @@ version = "0.2.1"
 description = "LangGraph Azure Function Agents"
 authors = ["job van Creij jobvancreij@gmail.com"]
 packages = [
-    
-    { include = "langgraph_func" },
+    { include = "langgraph_func" }
+]
+include = [
     { path = "docs/_build/html/**/*", format = ["sdist", "wheel"] }
-
 ]
 
 
