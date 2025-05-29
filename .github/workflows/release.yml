@@ -1,18 +1,34 @@
 name: Trunk-Based Release
 
 on:
+  # 1) Automatic patch bump on merges into main
   push:
-    branches: [ main ]
-    tags: [ 'v*.*.*' ]
+    branches:
+      - main
+
+  # 2) Manual bump override
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version bump level (patch, minor, major)"
+        required: true
+        default: "patch"
 
 permissions:
   contents: write
-  actions: read
-  id-token: write
 
 jobs:
   bump-and-publish:
     runs-on: ubuntu-latest
+    # → run on either a push to main (but not the Action’s own push)
+    #    or a manual dispatch
+    if: >-
+      (
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        github.actor != 'github-actions'
+      ) || github.event_name == 'workflow_dispatch'
+
     steps:
       - name: Checkout with full history
         uses: actions/checkout@v4
@@ -31,16 +47,17 @@ jobs:
       - name: Determine bump level
         id: bump
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "level=major" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "level=${{ github.event.inputs.level }}" >> $GITHUB_OUTPUT
           else
-            echo "level=minor" >> $GITHUB_OUTPUT
+            echo "level=patch" >> $GITHUB_OUTPUT
           fi
 
       - name: Bump version, commit & tag
         env:
           LEVEL: ${{ steps.bump.outputs.level }}
         run: |
+          echo "Bumping version with: $LEVEL"
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
           git config user.name "github-actions"
@@ -61,5 +78,3 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-
-
