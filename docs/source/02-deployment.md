@@ -11,3 +11,6 @@ app = create_app_from_yaml("function-app.yml")
 
 ```
 Make sure that the file is called *function_app.py* and is located in the root of your Azure Functions project.
+
+
+Run func start --p 7072 --python
