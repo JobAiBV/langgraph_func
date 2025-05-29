@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "langraph_api"
-version = "0.0.8"
+version = "0.1.0"
 description = "LangGraph Azure Function Agents"
 authors = ["Example <example@example.com>"]
 packages = [
@@ -26,6 +26,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "^7.0"
-myst-parser = "^0.18"
-toml = "^0.10"    # ← add this line
+sphinx = "*"
+myst-parser = "*"
+toml = "*"
