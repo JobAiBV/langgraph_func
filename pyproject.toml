@@ -6,10 +6,6 @@ authors = ["job van Creij jobvancreij@gmail.com"]
 packages = [
     { include = "langgraph_func" }
 ]
-include = [
-    { path = "langgraph_func/docs/_build/html/**/*", format = ["sdist", "wheel"] }
-]
-
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -33,3 +29,5 @@ sphinx = "*"
 myst-parser = "*"
 toml = "*"
 
+[tool.poetry.urls]
+Documentation = "https://your-org.github.io/langgraph-func/"

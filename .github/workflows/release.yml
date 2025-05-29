@@ -83,11 +83,6 @@ jobs:
             docs/source \
             docs/_build/html
 
-      # now copy it into your package before building
-      - name: Copy docs into package
-        run: |
-          mkdir -p langgraph_func/docs_html
-          cp -r docs/_build/html/* langgraph_func/docs_html/
 
       - name: Build distribution
         run: poetry build
@@ -110,5 +105,12 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html
+          publish_branch: gh-pages
+          user_name: 'github-actions'
+          user_email: 'github-actions@github.com'
 
