@@ -1,6 +1,7 @@
 import azure.functions as func
-from .docs_function import bp_docs
-
+from agentpkg.docs_builder import bp_docs
+from agentpkg.config.models import FuncAppConfig
+from agentpkg.func_app_builder.blueprint_builder import BlueprintBuilder
 
 class FuncAppBuilder:
     """A class to build and register Azure Function blueprints."""

@@ -19,6 +19,7 @@ langchain_community = "*"
 langchain-core = "*"
 openapi-schema-pydantic = "*"
 requests = "*"
+dacite = "*"
 
 [build-system]
 requires = ["poetry-core"]

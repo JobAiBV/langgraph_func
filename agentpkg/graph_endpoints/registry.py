@@ -24,6 +24,11 @@ class Endpoint:
     output_schema: Dict[str, Any]
     mermaid: str
 
+    # new fields
+    description: str                # human-readable description of this operation
+    blueprint: str                  # name of the blueprint this endpoint belongs to
+    blueprint_description: str      # human-readable description of that blueprint
+
     def dict(self) -> Dict[str, Any]:
         return asdict(self)
 
@@ -33,11 +38,13 @@ class APIRegistry:
     endpoints: List[Endpoint] = field(default_factory=list)
 
     def add(self, endpoint: Endpoint) -> None:
+        # add title metadata
         input_schema = endpoint.input_schema.copy()
         output_schema = endpoint.output_schema.copy()
         input_schema["title"] = f"{endpoint.name}_Input"
         output_schema["title"] = f"{endpoint.name}_Output"
 
+        # carry through the new description & blueprint info
         updated_ep = Endpoint(
             name=endpoint.name,
             path=endpoint.path,
@@ -46,6 +53,9 @@ class APIRegistry:
             input_schema=input_schema,
             output_schema=output_schema,
             mermaid=endpoint.mermaid,
+            description=endpoint.description,
+            blueprint=endpoint.blueprint,
+            blueprint_description=endpoint.blueprint_description,
         )
         self.endpoints.append(updated_ep)
 
@@ -55,11 +65,13 @@ class APIRegistry:
     def _create_operation(self, endpoint: Endpoint, method: str) -> Dict[str, Any]:
         in_ref = f"#/components/schemas/{endpoint.input_schema['title']}"
         out_ref = f"#/components/schemas/{endpoint.output_schema['title']}"
-        description = f"[View diagram]({mermaid_live_link(endpoint.mermaid)})"
 
+        # use endpoint.description here
         operation = {
+            "tags": [endpoint.blueprint],
             "summary": endpoint.name,
-            "description": description,
+            "description": endpoint.description + "\n\n" +
+                           f"[View diagram]({mermaid_live_link(endpoint.mermaid)})",
             "operationId": endpoint.name,
             "requestBody": {
                 "required": True,
@@ -83,17 +95,32 @@ class APIRegistry:
 
         return operation
 
-    def build_openapi(self, title: str = "Azure-Function LangGraph APIs", version: str = "1.0.0") -> Dict[str, Any]:
+    def build_openapi(
+        self,
+        title: str = "Azure-Function LangGraph APIs",
+        version: str = "1.0.0"
+    ) -> Dict[str, Any]:
         paths = defaultdict(dict)
         components: Dict[str, Any] = {"schemas": {}, "securitySchemes": {}}
 
+        # collect unique blueprint tags
+        tag_map: Dict[str, str] = {}
+
         for endpoint in self.endpoints:
+            # add schemas
             components["schemas"][endpoint.input_schema["title"]] = endpoint.input_schema
             components["schemas"][endpoint.output_schema["title"]] = endpoint.output_schema
 
+            # track unique blueprint name → description
+            tag_map[endpoint.blueprint] = endpoint.blueprint_description
+
+            # build operations under their path
             for method in endpoint.methods:
-                operation = self._create_operation(endpoint, method)
-                paths[endpoint.path][method.lower()] = operation
+                op = self._create_operation(endpoint, method)
+                paths[endpoint.path][method.lower()] = op
+
+        # build top-level tags list
+        tags = [{"name": name, "description": desc} for name, desc in tag_map.items()]
 
         return {
             "openapi": "3.1.0",
@@ -101,6 +128,7 @@ class APIRegistry:
                 "title": title,
                 "version": version,
             },
+            "tags": tags,
             "paths": dict(paths),
             "components": components
         }

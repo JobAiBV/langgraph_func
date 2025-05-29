@@ -1,3 +1,4 @@
+from sys import prefix
 from typing import Type
 
 from agentpkg.graph_endpoints.graph_executor_factory import EndpointGenerator
@@ -8,30 +9,35 @@ from langgraph.graph.state import CompiledStateGraph
 class BlueprintBuilder:
     """A class to build and register Azure Function blueprints."""
 
-    def __init__(self):
+    def __init__(self, path: str, description: str, name: str):
+        self.blueprint_path = path
         self._blueprint = func.Blueprint()
-
-    def validate_input(self, graph: CompiledStateGraph, input_type: Type[TInput]) -> "BlueprintBuilder":
-        if graph.name is "LangGraph":
-            raise ValueError("Graph name cannot be 'LangGraph'. Please provide a valid graph name by setting name in compiled graph")
+        self._description = description
+        self._name = name
 
     def add_endpoint(self,
+                     name: str,
+                     path: str,
                      graph: CompiledStateGraph,
                      input_type: Type[TInput],
                      output_type: Type[TOutput],
-                     auth_level: func.AuthLevel = func.AuthLevel.ANONYMOUS
+                     description: str,
+                     auth_level: func.AuthLevel = func.AuthLevel.ANONYMOUS,
+
                      ) -> "BlueprintBuilder":
         """
         Adds an endpoint to the blueprint using the provided graph, input, and output models.
         """
-        self.validate_input(graph, input_type)
         EndpointGenerator(
             blueprint=self._blueprint,
             graph=graph,
             input_model=input_type,
             output_model=output_type,
-            auth_level=auth_level
-        ).generate_and_register(graph.name, ["POST"])
+            auth_level=auth_level,
+            description=description,
+            blueprint_description=self._description,
+            blueprint_name = self._name
+        ).generate_and_register(name, ["POST"], f"{self.blueprint_path}/{path}")
         return self
 
     @property

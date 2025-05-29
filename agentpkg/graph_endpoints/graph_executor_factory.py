@@ -30,21 +30,27 @@ class EndpointGenerator(Generic[TInput, TOutput]):
         graph: CompiledStateGraph,
         input_model: Type[TInput],
         output_model: Type[TOutput],
-        auth_level: func.AuthLevel
+        auth_level: func.AuthLevel,
+        description: str,
+        blueprint_description: str,
+        blueprint_name: str
     ):
         self.blueprint = blueprint
         self.graph = graph
         self.input_model = input_model
         self.output_model = output_model
         self.auth_level = auth_level
+        self.description = description
+        self.blueprint_description = blueprint_description
         self._service = GraphExecutorService[TInput, TOutput](graph, output_model)
+        self.blueprint_name = blueprint_name
 
-    def _create_route(self, name: str, methods: List[str]) -> func.HttpRequest:
+    def _create_route(self, name: str, methods: List[str], path: str) -> func.HttpRequest:
         logger.debug(f"Defining HTTP route handler for '{name}'")
 
         @self.blueprint.function_name(name=name)
         @self.blueprint.route(
-            route=name,
+            route=path,
             methods=methods,
             auth_level=self.auth_level
         )
@@ -74,28 +80,32 @@ class EndpointGenerator(Generic[TInput, TOutput]):
 
         return handle_extraction_request
 
-    def _register(self, name: str, methods: List[str]) -> None:
+    def _register(self, name: str, methods: List[str], path: str) -> None:
         logger.debug(f"Registering endpoint '{name}' in API registry")
         registry.add(
             Endpoint(
                 name=name,
-                path=f"/api/{name}",
+                path=f"/api/{path}",
                 methods=methods,
                 auth_level=self.auth_level.name if hasattr(self.auth_level, "name") else str(self.auth_level),
                 input_schema=self.input_model.model_json_schema(),
                 output_schema=self.output_model.model_json_schema(),
-                mermaid=self.graph.get_graph().draw_mermaid(with_styles=False)
+                mermaid=self.graph.get_graph().draw_mermaid(with_styles=False),
+                description=self.description,
+                blueprint=self.blueprint_name,
+                blueprint_description=self.blueprint_description
             )
         )
 
     def generate_and_register(self,
                               name: str,
-                              methods: List[str]
+                              methods: List[str],
+                              path: str
                               ) -> "EndpointGenerator":
         """
         Create the decorated Azure Function route *and* register it.
         Returns self to allow chaining.
         """
-        self._create_route(name, methods)
-        self._register(name, methods)
+        self._create_route(name, methods, path)
+        self._register(name, methods, path)
         return self
