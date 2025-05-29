@@ -56,7 +56,7 @@ jobs:
       - name: Build distribution
         run: poetry build
 
-      - name: Create Release & upload artifacts
+      - name: Create Release
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ github.ref_name }}
