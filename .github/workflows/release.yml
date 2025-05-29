@@ -12,7 +12,8 @@ on:
         default: "patch"
 
 permissions:
-  contents: write
+  contents: write            # for checkout & release-action
+  packages: write            # (optional) if you also push GitHub Packages
 
 jobs:
   bump-and-publish:
@@ -53,12 +54,10 @@ jobs:
         env:
           LEVEL: ${{ steps.determine-level.outputs.level }}
         run: |
-          # bump pyproject.toml, capture the new version
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
           echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
 
-          # commit + tag
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add pyproject.toml
@@ -66,15 +65,30 @@ jobs:
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
-      - name: Update `latest` tag
-        run: |
-          # force-move (or create) a tag called "latest" pointing to v$NEW_VER
-          git tag -f latest v${{ steps.bump-version.outputs.new_version }}
-          git push origin latest --force
+#      - name: Update `latest` tag
+#        run: |
+#          git tag -f latest v${{ steps.bump-version.outputs.new_version }}
+#          git push origin latest --force
+
       - name: Build distribution
         run: poetry build
 
-      - name: Create Release & upload artifacts
+      # ───── New steps for PyPI publishing ─────
+      - name: Install Twine
+        run: pip install twine
+
+      - name: Publish to PyPI
+        env:
+          # create a PyPI API token in https://pypi.org/manage/account/token/
+          # and add it to your repo secrets as PYPI_TOKEN
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload --skip-existing dist/*
+
+      # ─────────────────────────────────────────
+
+      - name: Create GitHub Release & upload artifacts
         uses: ncipollo/release-action@v1
         with:
           tag: v${{ steps.bump-version.outputs.new_version }}
