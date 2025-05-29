@@ -5,8 +5,8 @@ The builder automatically registers a blueprint serving OpenAPI documentation at
 `/api/docs` and `/api/openapi.json`.
 
 ```python
-from agentpkg import FuncAppBuilder
-from agentpkg.graph_endpoints import EndpointGenerator
+from grapi import FuncAppBuilder
+from grapi.graph_endpoints import EndpointGenerator
 
 builder = FuncAppBuilder()
 app = builder.build()

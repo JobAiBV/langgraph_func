@@ -1,0 +1,81 @@
+# ----- Python bytecode & caches -----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ----- C extensions -----
+*.so
+
+# ----- Distribution / packaging -----
+build/
+dist/
+*.egg-info/
+*.eggs/
+pip-wheel-metadata/
+*.egg
+
+# ----- Installer logs -----
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ----- Virtual environments -----
+# adjust if you use a different name or location
+venv/
+env/
+.venv/
+ENV/
+
+# ----- Unit test / coverage -----
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# ----- Static analysis / type checkers -----
+.mypy_cache/
+.dmypy.json
+.pyre/
+
+# ----- Jupyter Notebook checkpoints -----
+.ipynb_checkpoints/
+
+# ----- Sphinx documentation -----
+docs/_build/
+
+# ----- PyInstaller -----
+*.manifest
+*.spec
+
+# ----- Django stuff -----
+*.log
+local_settings.py
+db.sqlite3
+media/
+
+# ----- Flask stuff -----
+instance/
+.webassets-cache
+
+# ----- Scrapy stuff -----
+.scrapy/
+
+# ----- Editor & OS metadata -----
+.idea/               # PyCharm project files
+*.iml                # PyCharm module files
+*.swp                # vim swap
+*~                   # backup files
+.DS_Store            # macOS
+Thumbs.db            # Windows
+
+# ----- Miscellaneous -----
+*.sqlite3
+*.db
+*.pem
+*.key
