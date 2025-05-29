@@ -60,6 +60,7 @@ jobs:
           echo "Bumping version with: $LEVEL"
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
+          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add pyproject.toml
@@ -73,7 +74,7 @@ jobs:
       - name: Create Release & upload artifacts
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.ref_name }}
+          tag: v${{ steps.bump.outputs.new_version }}
           artifacts: dist/*.tar.gz,dist/*.whl
           draft: false
           prerelease: false
