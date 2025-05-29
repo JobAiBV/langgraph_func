@@ -1,3 +1,9 @@
+swagger:
+  title: Test Function App
+  version: 1.0.0-beta
+  auth: FUNCTION
+  ui_route: docs
+
 blueprints:
   v1:
     path: v1
