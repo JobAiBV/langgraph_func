@@ -6,7 +6,7 @@ from pathlib import Path
 # Add your package (src/) to sys.path if needed.
 
 # -- Project metadata -------------------------------------------------------
-pyproject = toml.load(Path(__file__).parents[1] / "pyproject.toml")
+pyproject = toml.load(Path(__file__).parents[2] / "pyproject.toml")
 project = pyproject["tool"]["poetry"]["name"]
 raw_authors = pyproject["tool"]["poetry"].get("authors", [])
 if raw_authors and isinstance(raw_authors[0], str):
