@@ -1,0 +1,16 @@
+swagger:
+  title: Demo Function App
+  version: 1.0.0
+  auth: FUNCTION
+  ui_route: docs
+
+blueprints:
+  v1:
+    path: v1
+    description: Example blueprint
+    graphs:
+      vacancy_agent:
+        path: vacancy
+        source: grapi.graphs.vacancies.vacancy_agent
+        auth: FUNCTION
+        description: Extracts vacancy information
