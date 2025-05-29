@@ -1,16 +1,13 @@
 # Building Function Apps
 
-Use `FuncAppBuilder` to configure your Azure Function app along with all settings.
-The builder automatically registers a blueprint serving OpenAPI documentation at
-`/api/docs` and `/api/openapi.json`.
+The easiest way to run your graphs is by creating a small `function_app.py` module that builds the Azure Functions app.  Use `create_app_from_yaml` to load your configuration and register all graphs as HTTP triggers.
 
 ```python
 from langgraph_func.func_app_builder.create_app import create_app_from_yaml
 
 app = create_app_from_yaml("function-app.yml")
-
 ```
-Make sure that the file is called *function_app.py* and is located in the root of your Azure Functions project.
 
+Place this file in the root of your Functions project. When you start the Azure Functions host (`func start --python`) the app will expose one route per graph as well as Swagger documentation under `/api/docs` and `/api/openapi.json`.
 
-Run func start --p 7072 --python
+During development you can run the host locally to debug your graphs just as you would with plain `langgraph` code.

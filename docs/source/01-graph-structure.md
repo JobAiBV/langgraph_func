@@ -37,3 +37,7 @@ compiled_graph = (
 ```
 
 Every graph in your project should follow this pattern so that the YAML loader can import it correctly.
+
+The key takeaway is that **langgraph_func does not change how you write graphs**. You build them exactly as you would when using `langgraph` directly. By keeping the same pattern, any graph can be imported and exposed as an API endpoint or reused as a subgraph in another graph.
+
+When a graph is registered through the YAML configuration it becomes available as a normal Azure Function. Other graphs can call this function via `call_subgraph`, enabling powerful composition and easier debugging.
