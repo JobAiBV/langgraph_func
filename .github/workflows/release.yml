@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       level:
@@ -12,8 +14,8 @@ on:
         default: "patch"
 
 permissions:
-  contents: write            # for checkout & release-action
-  packages: write            # (optional) if you also push GitHub Packages
+  contents: write      # for checkout & release-action
+  packages: write      # for PyPI publishing
 
 jobs:
   bump-and-publish:
@@ -65,28 +67,18 @@ jobs:
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
-#      - name: Update `latest` tag
-#        run: |
-#          git tag -f latest v${{ steps.bump-version.outputs.new_version }}
-#          git push origin latest --force
-
       - name: Build distribution
         run: poetry build
 
-      # ───── New steps for PyPI publishing ─────
       - name: Install Twine
         run: pip install twine
 
       - name: Publish to PyPI
         env:
-          # create a PyPI API token in https://pypi.org/manage/account/token/
-          # and add it to your repo secrets as PYPI_TOKEN
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           twine upload --skip-existing dist/*
-
-      # ─────────────────────────────────────────
 
       - name: Create GitHub Release & upload artifacts
         uses: ncipollo/release-action@v1
@@ -96,3 +88,38 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-docs:
+    needs: bump-and-publish
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Poetry & docs deps
+        run: |
+          pip install poetry
+          poetry install --with docs
+
+      - name: Build documentation
+        run: |
+          poetry run sphinx-build -b html docs/source docs/build/html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/build/html
+          publish_branch: gh-pages
+          user_name: 'github-actions'
+          user_email: 'github-actions@github.com'

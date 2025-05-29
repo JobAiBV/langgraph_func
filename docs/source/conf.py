@@ -1,32 +1,29 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+# docs/source/conf.py
+import toml
+from pathlib import Path
 
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+# -- Path setup --------------------------------------------------------------
+# Add your package (src/) to sys.path if needed.
 
-project = 'langraph_api'
-copyright = '2025, Your Name'
-author = 'Job van Creij'
-release = '0.1.0'
+# -- Project metadata -------------------------------------------------------
+pyproject = toml.load(Path(__file__).parents[1] / "pyproject.toml")
+project = pyproject["tool"]["poetry"]["name"]
+author  = ", ".join(a["name"] for a in pyproject["tool"]["poetry"]["authors"])
+release = pyproject["tool"]["poetry"]["version"]
 
 # -- General configuration ---------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'myst_parser',
 ]
-
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 templates_path = ['_templates']
 exclude_patterns = []
 
-
-
-# -- Options for HTML output -------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
-
+# -- HTML output -------------------------------------------------------------
 html_theme = 'alabaster'
 html_static_path = ['_static']
