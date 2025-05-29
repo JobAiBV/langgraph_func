@@ -8,7 +8,11 @@ from pathlib import Path
 # -- Project metadata -------------------------------------------------------
 pyproject = toml.load(Path(__file__).parents[1] / "pyproject.toml")
 project = pyproject["tool"]["poetry"]["name"]
-author  = ", ".join(a["name"] for a in pyproject["tool"]["poetry"]["authors"])
+raw_authors = pyproject["tool"]["poetry"].get("authors", [])
+if raw_authors and isinstance(raw_authors[0], str):
+    author = ", ".join(a.split(" <")[0] for a in raw_authors)
+else:
+    author = ", ".join(a.get("name", str(a)) for a in raw_authors)
 release = pyproject["tool"]["poetry"]["version"]
 
 # -- General configuration ---------------------------------------------------
