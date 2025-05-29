@@ -60,7 +60,7 @@ jobs:
           echo "Bumping version with: $LEVEL"
           poetry version "$LEVEL"
           NEW_VER=$(poetry version -s)
-          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+          echo "new_version=v$NEW_VER" >> $GITHUB_OUTPUT
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add pyproject.toml
