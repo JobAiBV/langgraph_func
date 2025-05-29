@@ -1,0 +1,47 @@
+name: Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: "Version bump level (patch, minor, major)"
+        required: true
+        default: "patch"
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  bump-version:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: pip install poetry
+      - name: Bump version and tag
+        run: |
+          poetry version ${{ github.event.inputs.level }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "Bump version"
+          git tag "v$(poetry version -s)"
+          git push --follow-tags
+
+  publish:
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: pip install poetry
+      - name: Build package
+        run: poetry build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
