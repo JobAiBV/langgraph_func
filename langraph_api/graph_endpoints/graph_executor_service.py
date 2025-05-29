@@ -2,8 +2,8 @@ from typing import TypeVar, Type, List, Generic
 from pydantic import BaseModel
 
 from langgraph.graph.state import CompiledStateGraph
-from grapi.logger import get_logger
-from grapi.types import TInput, TOutput
+from langraph_api.logger import get_logger
+from langraph_api.types import TInput, TOutput
 logger = get_logger()
 
 

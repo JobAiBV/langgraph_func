@@ -1,4 +1,4 @@
 # settings.py
-from grapi.config import Settings
+from .config import Settings
 
 settings = Settings()

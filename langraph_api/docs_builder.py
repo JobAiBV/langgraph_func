@@ -1,8 +1,8 @@
 import json
 import azure.functions as func
-from grapi.graph_endpoints.registry import registry
+from langraph_api.graph_endpoints.registry import registry
 from pathlib import Path
-from grapi.settings import settings
+from langraph_api.settings import settings
 def register_swagger_routes(
     bp: func.Blueprint,
     *,

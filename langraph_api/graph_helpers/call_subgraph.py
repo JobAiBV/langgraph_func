@@ -2,7 +2,7 @@ import requests
 from urllib.parse import urljoin
 from typing import TypeVar, Union
 from pydantic import BaseModel
-from grapi.logger import get_logger
+from langraph_api.logger import get_logger
 from typing import Callable, Any
 from contextvars import ContextVar
 from enum import Enum, auto

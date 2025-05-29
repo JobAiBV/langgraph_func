@@ -17,7 +17,7 @@ blueprints:
     graphs:
       vacancy_agent:
         path: vacancy
-        source: grapi.graphs.vacancies.vacancy_agent
+        source: langraph_api.graphs.vacancies.vacancy_agent
         auth: FUNCTION
         description: Extracts vacancy information
 ```
@@ -25,7 +25,7 @@ blueprints:
 Save this file (for example `function-app.yml`) and create the app:
 
 ```python
-from grapi.func_app_builder.create_app import create_app_from_yaml
+from langraph_api.func_app_builder.create_app import create_app_from_yaml
 
 app = create_app_from_yaml("function-app.yml")
 ```

@@ -11,6 +11,6 @@ blueprints:
     graphs:
       vacancy_agent:
         path: vacancy
-        source: grapi.graphs.vacancies.vacancy_agent
+        source: langraph_api.graphs.vacancies.vacancy_agent
         auth: FUNCTION
         description: Extracts vacancy information

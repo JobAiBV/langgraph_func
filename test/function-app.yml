@@ -4,9 +4,9 @@ swagger:
   auth: FUNCTION
   ui_route: docs
 
-blueprints:
-  v1:
-    path: v1
+apis:
+  blueprint_a:
+    path: blueprint_a
     description: |
       This blueprint, “test_blueprint”, is responsible for handling core
       graph operations in the testing environment. It groups together
@@ -20,33 +20,10 @@ blueprints:
           GraphA ingests raw data from the primary “graph” source,
           applies transformation logic, and outputs structured
           results for downstream processes.
-      graphB:
-        path: graphB
-        source: graphs.graph_b
+      subGraph:
+        path: subGraph
+        source: graphs.subgraph
         auth: FUNCTION
         description: |
-          GraphB connects to the secondary “graph_b” data source,
-          performs enrichment steps, and validates data integrity
-          before exporting.
-  v2:
-    path: v2
-    description: |
-      The “test_blueprint_2” blueprint extends the testing suite
-      with additional graphs for experimental features and
-      prototyping new data flows.
-    graphs:
-      GraphA:
-        path: GraphA
-        source: graphs.graph
-        auth: FUNCTION
-        description: |
-          new_graph is a variant of GraphA configured for
-          experimental transformations and performance benchmarking.
-      GraphB:
-        path: GraphB
-        source: graphs.graph_b
-        auth: FUNCTION
-        description: |
-          newer_graph builds on GraphB’s logic with extra
-          validation rules and custom metrics for early
-          feature testing.
+          Test calling a subgraph from a graph
+  

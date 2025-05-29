@@ -5,12 +5,9 @@ The builder automatically registers a blueprint serving OpenAPI documentation at
 `/api/docs` and `/api/openapi.json`.
 
 ```python
-from grapi import FuncAppBuilder
-from grapi.graph_endpoints import EndpointGenerator
+from langraph_api.func_app_builder.create_app import create_app_from_yaml
 
-builder = FuncAppBuilder()
-app = builder.build()
+app = create_app_from_yaml("function-app.yml")
 
-# register additional blueprints
-builder.add_blueprint(my_blueprint)
 ```
+Make sure that the file is called *function_app.py* and is located in the root of your Azure Functions project.

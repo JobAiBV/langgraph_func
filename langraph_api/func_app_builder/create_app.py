@@ -1,6 +1,6 @@
-from grapi.yml_config.loader import load_funcapp_config
-from grapi.func_app_builder.blueprint_builder import BlueprintBuilder
-from grapi.func_app_builder.func_app_builder import FuncAppBuilder
+from langraph_api.yml_config.loader import load_funcapp_config
+from langraph_api.func_app_builder.blueprint_builder import BlueprintBuilder
+from langraph_api.func_app_builder.func_app_builder import FuncAppBuilder
 
 def create_app_from_yaml(config_path: str):
     """
