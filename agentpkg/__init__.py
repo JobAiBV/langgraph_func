@@ -20,6 +20,7 @@ from agentpkg.graph_endpoints.graph_executor_service import GraphExecutorService
 from agentpkg.graph_endpoints.registry import APIRegistry, Endpoint, registry
 from .logger import get_logger
 from .settings import settings
+from .func_app_builder import FuncAppBuilder
 
 __all__ = [
     "call_azure_function",
@@ -36,5 +37,6 @@ __all__ = [
     "registry",
     "get_logger",
     "settings",
+    "FuncAppBuilder",
     "__version__",
 ]
