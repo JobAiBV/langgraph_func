@@ -4,11 +4,11 @@ import azure.functions as func
 from pydantic import BaseModel
 
 from langgraph.graph.state import CompiledStateGraph
-from langraph_api.graph_helpers.wrappers import validate_body
-from langraph_api.graph_endpoints.registry import Endpoint, registry
-from langraph_api.logger import get_logger
-from langraph_api.graph_endpoints.graph_executor_service import GraphExecutorService
-from langraph_api.graph_helpers.call_subgraph import FUNCTION_KEY
+from langgraph_api.graph_helpers.wrappers import validate_body
+from langgraph_api.graph_endpoints.registry import Endpoint, registry
+from langgraph_api.logger import get_logger
+from langgraph_api.graph_endpoints.graph_executor_service import GraphExecutorService
+from langgraph_api.graph_helpers.call_subgraph import FUNCTION_KEY
 logger = get_logger()
 
 TInput = TypeVar("TInput", bound=BaseModel)

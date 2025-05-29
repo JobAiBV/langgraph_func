@@ -1,9 +1,9 @@
 from sys import prefix
 from typing import Type
 
-from langraph_api.graph_endpoints.graph_executor_factory import EndpointGenerator
+from langgraph_api.graph_endpoints.graph_executor_factory import EndpointGenerator
 import azure.functions as func
-from langraph_api.types import TInput, TOutput
+from langgraph_api.types import TInput, TOutput
 from langgraph.graph.state import CompiledStateGraph
 
 class BlueprintBuilder:

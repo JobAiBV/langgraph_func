@@ -22,7 +22,7 @@ blueprints:
           results for downstream processes.
       subGraph:
         path: subGraph
-        source: graphs.subgraph
+        source: graphs.parent_graph
         auth: FUNCTION
         description: |
           Test calling a subgraph from a graph
