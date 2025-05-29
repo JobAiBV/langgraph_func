@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "langraph_api"
-version = "0.1.1"
+version = "0.1.2"
 description = "LangGraph Azure Function Agents"
 authors = ["Example <example@example.com>"]
 packages = [
