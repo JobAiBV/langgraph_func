@@ -92,8 +92,6 @@ jobs:
   deploy-docs:
     needs: bump-and-publish
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-
     steps:
       - name: Checkout with full history
         uses: actions/checkout@v4
