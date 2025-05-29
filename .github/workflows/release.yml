@@ -1,6 +1,5 @@
 name: Trunk-Based Release
 
-# Trigger on commits to main *and* on any tag push
 on:
   push:
     branches:
@@ -10,6 +9,8 @@ on:
 
 permissions:
   contents: write
+  actions: read
+  id-token: write
 
 jobs:
   bump-and-publish:
@@ -32,7 +33,6 @@ jobs:
       - name: Determine bump level
         id: bump
         run: |
-          # Are we running on a tag?  If so, bump major; otherwise bump minor
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             echo "level=major" >> $GITHUB_OUTPUT
           else
@@ -54,8 +54,7 @@ jobs:
           git push origin HEAD --follow-tags
 
       - name: Build distribution
-        run: |
-          poetry build
+        run: poetry build
 
       - name: Create GitHub Release
         id: create_release
@@ -68,12 +67,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload release assets
+      # ———————— FIXED UPLOAD STEPS ————————
+      - name: Upload source tarball
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/
-          asset_name: |
-            $(basename dist/*.tar.gz)
-            $(basename dist/*.whl)
+          asset_path: dist/*.tar.gz
+          asset_name: $(basename dist/*.tar.gz)
+          asset_content_type: application/gzip
+
+      - name: Upload wheel
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: $(basename dist/*.whl)
           asset_content_type: application/octet-stream
