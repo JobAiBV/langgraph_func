@@ -111,7 +111,11 @@ jobs:
 
       - name: Build documentation
         run: |
-          poetry run sphinx-build -b html docs/source docs/build/html
+          poetry run sphinx-build \
+            -b html \
+            -c docs/source \      # point at your docs/source/conf.py
+            docs/source \         # where your .rst/.md lives
+            docs/build/html       # where to dump the HTML
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
