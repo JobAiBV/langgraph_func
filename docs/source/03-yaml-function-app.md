@@ -17,7 +17,7 @@ blueprints:
     graphs:
       vacancy_agent:
         path: vacancy
-        source: langgraph_api.graphs.vacancies.vacancy_agent
+        source: langgraph_func.graphs.vacancies.vacancy_agent
         auth: FUNCTION
         description: Extracts vacancy information
 ```
@@ -25,7 +25,7 @@ blueprints:
 Save this file (for example `function-app.yml`) and create the app:
 
 ```python
-from langgraph_api.func_app_builder.create_app import create_app_from_yaml
+from langgraph_func.func_app_builder.create_app import create_app_from_yaml
 
 app = create_app_from_yaml("function-app.yml")
 ```

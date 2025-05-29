@@ -1,4 +1,4 @@
 # settings.py
-from langgraph_api.config import Settings
+from langgraph_func.config import Settings
 
 settings = Settings()

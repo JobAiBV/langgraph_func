@@ -3,10 +3,10 @@ import yaml
 from typing import Any, Dict, List, Tuple
 from dataclasses import dataclass
 from dacite import from_dict
-from langgraph_api.logger import get_logger
+from langgraph_func.logger import get_logger
 from azure.functions import AuthLevel
 from langgraph.graph.state import CompiledStateGraph
-from langgraph_api.yml_config.models import (
+from langgraph_func.yml_config.models import (
     GraphConfig,
     BlueprintConfig,
     FuncAppConfig,

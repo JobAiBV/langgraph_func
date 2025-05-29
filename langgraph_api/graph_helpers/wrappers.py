@@ -3,7 +3,7 @@ import asyncio
 from functools import wraps
 from pydantic import BaseModel, ValidationError
 import azure.functions as func
-from langgraph_api.logger import get_logger
+from langgraph_func.logger import get_logger
 
 logger = get_logger()
 import json

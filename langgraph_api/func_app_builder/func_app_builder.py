@@ -1,7 +1,7 @@
 import azure.functions as func
 from azure.functions import AuthLevel
 
-from langgraph_api.docs_builder import register_swagger_routes
+from langgraph_func.docs_builder import register_swagger_routes
 
 
 class FuncAppBuilder:

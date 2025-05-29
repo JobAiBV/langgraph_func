@@ -1,8 +1,8 @@
 import json
 import azure.functions as func
-from langgraph_api.graph_endpoints.registry import registry
+from langgraph_func.graph_endpoints.registry import registry
 from pathlib import Path
-from langgraph_api.settings import settings
+from langgraph_func.settings import settings
 def register_swagger_routes(
     bp: func.Blueprint,
     *,
