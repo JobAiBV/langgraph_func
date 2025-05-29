@@ -1,7 +1,8 @@
 # Building a Function App from YAML
 
-The easiest way to host your graphs is to describe them in a YAML file and load it with `create_app_from_yaml`.
-Below is a minimal configuration:
+The `langgraph_func` package reads a simple YAML file that lists your blueprints and graphs. Each entry points to a Python module containing the regular LangGraph definition. This approach keeps your graph code untouched while making it easy to expose as HTTP endpoints.
+
+An example configuration looks like:
 
 ```yaml
 swagger:
@@ -22,7 +23,9 @@ blueprints:
         description: Extracts vacancy information
 ```
 
-Save this file (for example `function-app.yml`) and create the app:
+Each graph entry specifies the route (`path`), the module to import (`source`), the authentication level and a description used for the generated documentation.
+
+Once the file is saved (e.g. `function-app.yml`) you can load it and start the app:
 
 ```python
 from langgraph_func.func_app_builder.create_app import create_app_from_yaml
@@ -30,17 +33,6 @@ from langgraph_func.func_app_builder.create_app import create_app_from_yaml
 app = create_app_from_yaml("function-app.yml")
 ```
 
-`create_app_from_yaml` internally loads the configuration, builds the blueprints and registers all endpoints:
+Internally `create_app_from_yaml` validates the YAML, builds a `BlueprintBuilder` for each blueprint and registers the graphs as Azure Functions. Swagger documentation is generated automatically from the dataclasses in the YAML file and the Pydantic models exported by your graphs.
 
-```python
-loaded_blueprints, loaded_swagger = load_funcapp_config(config_path)
-app_builder = FuncAppBuilder().add_docs(
-    title=loaded_swagger.title,
-    auth_level=loaded_swagger.auth,
-    version=loaded_swagger.version,
-    ui_route=loaded_swagger.ui_route,
-)
-# ...register graphs...
-```
-
-Run your Azure Functions host and your API will expose routes under `/api` with automatically generated Swagger documentation.
+Running the Functions host will serve the API under `/api`. Each graph can also be invoked by other graphs using `call_subgraph`, which makes them fully reusable components.

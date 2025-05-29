@@ -1,5 +1,7 @@
-LangGraph API Documentation
-===========================
+LangGraph Function API
+======================
+
+`langgraph_func` is a thin layer on top of [LangGraph](https://github.com/langchain-ai/langgraph) that exposes your graphs as Azure Functions. It keeps the graph API exactly the same while providing utilities to register graphs, generate Swagger docs and call one graph from another.
 
 .. toctree::
    :maxdepth: 2

@@ -1,34 +1,28 @@
 # Helper Functions
 
-Several small helpers make it easier to build graphs.
+Several helpers ship with `langgraph_func` to make graph composition straightforward.
 
 ## `call_subgraph`
 
-Use this function to invoke another Azure Function that exposes a graph. It builds the payload from your current state and handles errors for you.
+`call_subgraph` invokes another Azure Function that exposes a graph. The payload is built from the current state and any errors are automatically raised as `RuntimeError`.
 
 ```python
 def test(state: MergedState) -> dict:
-    """
-    Wrapper function to invoke the subgraph (func_title_extractor) via Azure Function.
-    """
     output = call_subgraph(
         state=state,
         function_path="test/graphA",
-        payload_builder=lambda s: {"input_text": s.input_text}, # send the input text as input text to the child
-        base_url=settings.function_base_url, # take base_url of own api since it is in same url (change for other func app)
-        function_key=FunctionKeySpec.INTERNAL, # use key from parent call as function key
-
+        payload_builder=lambda s: {"input_text": s.input_text},
+        base_url=settings.function_base_url,
+        function_key=FunctionKeySpec.INTERNAL,
     )
-    return {
-        "child_update": output["update"]
-    }
+    return {"child_update": output["update"]}
 ```
 
-If the remote function returns an error, `call_subgraph` raises a `RuntimeError`.
+With this helper every graph published by `langgraph_func` can be reused as a subgraph by simply calling its HTTP endpoint.
 
 ## `skip_if_locked`
 
-Sometimes you want to skip a node when running a graph. Decorate the node function with `skip_if_locked("node_name")` and include a `locked_nodes` list in your state. If the name is present, the node simply returns an empty dictionary.
+Decorate a node with `skip_if_locked("node_name")` and include a `locked_nodes` list in your state. If the node name is present, the function returns an empty dictionary and the graph continues without executing that step.
 
 ```python
 @skip_if_locked("<AGENT_NAME>")
@@ -42,4 +36,4 @@ def subgraph_wrapper_education(state: MergedState) -> dict:
     )
 ```
 
-This makes your graphs flexible without scattering conditional logic throughout your code.
+These utilities keep your graphs flexible and promote a clean separation of concerns.
