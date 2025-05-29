@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agentpkg"
-version = "1.0.3"
+version = "1.0.4"
 description = "LangGraph Azure Function Agents"
 authors = ["Example <example@example.com>"]
 packages = [
