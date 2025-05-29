@@ -66,6 +66,11 @@ jobs:
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
+      - name: Update `latest` tag
+        run: |
+          # force-move (or create) a tag called "latest" pointing to v$NEW_VER
+          git tag -f latest v${{ steps.bump-version.outputs.new_version }}
+          git push origin latest --force
       - name: Build distribution
         run: poetry build
 
