@@ -2,10 +2,8 @@ name: Trunk-Based Release
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*.*.*'
+    branches: [ main ]
+    tags: [ 'v*.*.*' ]
   workflow_dispatch:
     inputs:
       level:
@@ -14,13 +12,17 @@ on:
         default: "patch"
 
 permissions:
-  contents: write      # for checkout & release-action
-  packages: write      # for PyPI publishing
+  contents: write
+  packages: write
+
+# ─── Define your docs build steps once ─────────────────────────────────────
+# We’ll anchor these two maps and then reuse them below.
+# The names (&install-docs, &build-docs) are arbitrary YAML anchor keys.
 
 jobs:
   bump-and-publish:
     runs-on: ubuntu-latest
-    if: >-
+    if: >
       (
         github.event_name == 'push' &&
         github.ref == 'refs/heads/main' &&
@@ -67,6 +69,28 @@ jobs:
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
+      # ─── Docs steps (anchored) ─────────────────────────
+      - &install-docs
+        name: Install docs dependencies
+        run: |
+          pip install poetry
+          poetry install --with docs
+
+      - &build-docs
+        name: Build documentation
+        run: |
+          poetry run sphinx-build \
+            -b html \
+            -c docs/source \
+            docs/source \
+            docs/_build/html
+
+      # now copy it into your package before building
+      - name: Copy docs into package
+        run: |
+          mkdir -p langgraph_func/docs_html
+          cp -r docs/_build/html/* langgraph_func/docs_html/
+
       - name: Build distribution
         run: poetry build
 
@@ -77,8 +101,7 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          twine upload --skip-existing dist/*
+        run: twine upload --skip-existing dist/*
 
       - name: Create GitHub Release & upload artifacts
         uses: ncipollo/release-action@v1
@@ -89,39 +112,5 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy-docs:
-    needs: bump-and-publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout with full history
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
 
-      - name: Install Poetry & docs deps
-        run: |
-          pip install poetry
-          poetry install --with docs
-
-      - name: Build documentation
-        run: |
-          poetry run sphinx-build \
-            -b html \
-            -c docs/source \
-            docs/source \
-            docs/build/html
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/build/html
-          publish_branch: gh-pages
-          user_name: 'github-actions'
-          user_email: 'github-actions@github.com'
