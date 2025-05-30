@@ -1,34 +1,97 @@
-`langgraph_func` makes any LangGraph graph available as an Azure Function without changing how you build the graph itself. Every graph can act as a standalone API endpoint or be called as a subgraph from another graph.
+# langgraph-func
 
-Documentation lives in the `docs` folder. The most important topics are:
-- [Graph structure](docs/source/01-graph-structure.md)
-- [Function app deployment](docs/source/02-deployment.md)
-- [YAML configuration](docs/source/03-yaml-function-app.md)
-- [Helper functions](docs/source/04-helper-functions.md)
+[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://jobaibv.github.io/langgraph_func/)
 
+**Expose LangGraph workflows as Azure Function HTTP endpoints.**
 
-For more info:
+## Installation
 
-You don’t need a separate file on PyPI—PyPI just renders whatever you point it to as your project’s README. With Poetry that’s almost always the `README.md` (or `README.rst`) in the **root** of your repo. So:
+```bash
+poetry add langgraph_func
+```
 
-1. **Open `README.md` at the project root** (the same one next to `pyproject.toml`).
+*Requires Python ≥3.10, LangGraph, Azure Functions SDK.*
 
-2. **Add your docs badge/link** at the top, for example:
+## Define a Workflow
 
-   ```md
-   # langgraph-func
+```python
+from pydantic import BaseModel
+from langgraph.graph import StateGraph, START
+from typing import Optional
 
-   [![Documentation Status](https://your-org.github.io/langgraph-func/badge.svg)](https://your-org.github.io/langgraph-func/)
+class Input(BaseModel):
+    input_text: str
 
-   LangGraph Azure Function Agents
-   ```
+class Output(BaseModel):
+    update: Optional[str] = None
 
-3. (Optional) In `pyproject.toml` explicitly tell Poetry where your README is, so PyPI picks it up:
+class MergedState(Input, Output):
+    pass
 
-   ```toml
-   [tool.poetry]
-   # …
-   readme = "README.md"
-   ```
+def test(state: MergedState) -> dict:
+    return {"update": "ok"}
 
-4. Commit & bump your version, then re-publish. When PyPI rebuilds the page for that new release it will pull in your updated `README.md`, badge and all.
+compiled_graph = StateGraph(input=Input, output=Output) \
+    .add_node("test", test) \
+    .add_edge(START, "test") \
+    .set_finish_point("test") \
+    .compile(name="test_graph")
+```
+
+## Configuration (function-app.yml)
+
+```yaml
+swagger:
+  title: Test Function App
+  version: 1.0.0-beta
+  auth: FUNCTION
+  ui_route: docs
+
+blueprints:
+  blueprint_a:
+    path: blueprint_a
+    description: |
+      Groups related graphs.
+    graphs:
+      graphA:
+        path: graphA
+        source: graphs.graph
+        auth: FUNCTION
+        description: |
+          GraphA ingests raw input.
+      parentGraph:
+        path: parentGraph
+        source: graphs.parent_graph
+        auth: FUNCTION
+        description: |
+          Calls a subgraph from a parent.
+```
+
+## Run in Azure Functions
+
+```python
+from langgraph_func.func_app_builder.create_app import create_app_from_yaml
+app = create_app_from_yaml("function-app.yml")
+```
+
+Deploy with `func azure functionapp publish <APP_NAME>`.
+
+## Calling Subgraphs
+
+```python
+from langgraph_func.graph_helpers.call_subgraph import call_subgraph, FunctionKeySpec
+
+def test(state, **kwargs):
+    output = call_subgraph(
+        state=state,
+        function_path="blueprint_a/graphA",
+        payload_builder=lambda s: {"input_text": s.input_text},
+        base_url=kwargs.get("function_base_url"),
+        function_key=FunctionKeySpec.INTERNAL
+    )
+    return {"child_update": output["update"]}
+```
+
+## Documentation
+
+See [GitHub Pages](https://jobaibv.github.io/langgraph_func/) for full API reference and examples.
