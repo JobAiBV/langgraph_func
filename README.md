@@ -83,6 +83,7 @@ class Input(BaseModel):
     input_text: str
 class Output(BaseModel):
     child_update: Optional[str] = None
+    
 # create one invoker instance
 subgraph = AzureFunctionInvoker(
     function_path="blueprint_a/graphA",
