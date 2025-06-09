@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Helper Functions &#8212; langgraph_func 0.3.4 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=1e28cc32"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Building a Function App from YAML" href="03-yaml-function-app.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="helper-functions">
+<h1>Helper Functions<a class="headerlink" href="#helper-functions" title="Link to this heading">¶</a></h1>
+<p>Several helpers ship with <code class="docutils literal notranslate"><span class="pre">langgraph_func</span></code> to simplify graph composition and management.</p>
+<section id="azurefunctioninvoker">
+<h2><code class="docutils literal notranslate"><span class="pre">AzureFunctionInvoker</span></code><a class="headerlink" href="#azurefunctioninvoker" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">AzureFunctionInvoker</span></code> invokes another Azure Function that exposes a graph, building the payload from the current state. It handles errors automatically by raising <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code>.</p>
+<section id="usage-example">
+<h3>Usage Example<a class="headerlink" href="#usage-example" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph_func.graph_helpers.call_subgraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">AzureFunctionInvoker</span><span class="p">,</span> <span class="n">FunctionKeySpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_project.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">subgraph_invoker</span> <span class="o">=</span> <span class="n">AzureFunctionInvoker</span><span class="p">(</span>
+    <span class="n">function_path</span><span class="o">=</span><span class="s2">&quot;test/graphA&quot;</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">function_base_url</span><span class="p">,</span>
+    <span class="n">input_field_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_text&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">},</span>
+    <span class="n">output_field_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;updates&quot;</span><span class="p">:</span> <span class="s2">&quot;child_update&quot;</span><span class="p">},</span>
+    <span class="n">auth_key</span><span class="o">=</span><span class="n">FunctionKeySpec</span><span class="o">.</span><span class="n">INTERNAL</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>This helper allows any published graph endpoint to be seamlessly reused as a subgraph.</p>
+</section>
+</section>
+<section id="skip-if-locked">
+<h2><code class="docutils literal notranslate"><span class="pre">skip_if_locked</span></code><a class="headerlink" href="#skip-if-locked" title="Link to this heading">¶</a></h2>
+<p>Decorate a node with <code class="docutils literal notranslate"><span class="pre">skip_if_locked(&quot;node_name&quot;)</span></code> to conditionally skip execution based on your state. Ensure your state includes a <code class="docutils literal notranslate"><span class="pre">locked_nodes</span></code> list. If the node’s name is present in <code class="docutils literal notranslate"><span class="pre">locked_nodes</span></code>, the function returns an empty dictionary, and the graph execution continues without running that node.</p>
+<section id="id1">
+<h3>Usage Example<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph_func.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">skip_if_locked</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langgraph_func.graph_helpers.call_subgraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">AzureFunctionInvoker</span><span class="p">,</span> <span class="n">FunctionKeySpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">your_project.settings</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+
+<span class="n">education_agent_invoker</span> <span class="o">=</span> <span class="n">AzureFunctionInvoker</span><span class="p">(</span>
+    <span class="n">function_path</span><span class="o">=</span><span class="s2">&quot;education_agent&quot;</span><span class="p">,</span>
+    <span class="n">base_url</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">function_base_url</span><span class="p">,</span>
+    <span class="n">input_field_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;vacancy_text&quot;</span><span class="p">:</span> <span class="s2">&quot;vacancy_text&quot;</span><span class="p">},</span>
+    <span class="n">auth_key</span><span class="o">=</span><span class="n">FunctionKeySpec</span><span class="o">.</span><span class="n">INTERNAL</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nd">@skip_if_locked</span><span class="p">(</span><span class="s2">&quot;education_agent&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subgraph_wrapper_education</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MergedState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">education_agent_invoker</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">langgraph_func</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="01-graph-structure.html">Graph Structure Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-deployment.html">Building Function Apps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-yaml-function-app.html">Building a Function App from YAML</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Helper Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#azurefunctioninvoker"><code class="docutils literal notranslate"><span class="pre">AzureFunctionInvoker</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#skip-if-locked"><code class="docutils literal notranslate"><span class="pre">skip_if_locked</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="03-yaml-function-app.html" title="previous chapter">Building a Function App from YAML</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/04-helper-functions.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
