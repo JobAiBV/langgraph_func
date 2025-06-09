@@ -9,7 +9,7 @@ class Input(BaseModel):
 
 
 class Output(BaseModel):
-    update: Optional[str] = None
+    child_update: Optional[str] = None
 
 
 class MergedState(Input, Output):
@@ -22,7 +22,7 @@ def test(state: MergedState) -> dict:
     Wrapper function to invoke the subgraph (func_title_extractor) via Azure Function.
     """
     return {
-        "update": "ok"
+        "child_update": "okd2"
     }
 
 

@@ -20,8 +20,8 @@ blueprints:
           GraphA ingests raw data from the primary “graph” source,
           applies transformation logic, and outputs structured
           results for downstream processes.
-      subGraph:
-        path: subGraph
+      parent_graph:
+        path: parentGraph
         source: graphs.parent_graph
         auth: FUNCTION
         description: |

@@ -1,1 +1,1 @@
-git+https://JOBAIBV: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@github.com/JOBAIBV/langgraph_funcgit@latest#egg=langgraph_func
+../
