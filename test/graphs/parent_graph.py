@@ -1,42 +1,32 @@
+# parent_graph.py
+
 from pydantic import BaseModel
-from langgraph.graph import StateGraph, START
 from typing import Optional
-from langgraph_func.graph_helpers.call_subgraph import call_subgraph,FunctionKeySpec
+from langgraph.graph import StateGraph, START
+from langgraph_func.graph_helpers.call_subgraph import AzureFunctionInvoker
+from langgraph_func.graph_helpers.call_subgraph import FunctionKeySpec
 from .settings import settings
 
 class Input(BaseModel):
     input_text: str
 
-
 class Output(BaseModel):
     child_update: Optional[str] = None
 
+# create one invoker instance
+graphA_node = AzureFunctionInvoker[Input](
+    function_path="blueprint_a/graphA",
+    base_url=settings.function_base_url,
+    payload_builder=lambda s: {"input_text": s.input_text},
+    function_key=FunctionKeySpec.INTERNAL,
+    timeout=10.0
+)
 
-class MergedState(Input, Output):
-    pass
-
-
-
-def test(state: MergedState) -> dict:
-    """
-    Wrapper function to invoke the subgraph (func_title_extractor) via Azure Function.
-    """
-    output = call_subgraph(
-        state=state,
-        function_path="blueprint_a/graphA",
-        payload_builder=lambda s: {"input_text": s.input_text}, # send the input text as input text to the child
-        base_url=settings.function_base_url, # take base_url of own api since it is in same url (change for other func app)
-        function_key=FunctionKeySpec.INTERNAL, # use key from parent call as function key
-
-    )
-    return {
-        "child_update": output["update"]
-    }
-
-
-# Build the graph
-compiled_graph = StateGraph(input = Input, output = Output)\
-    .add_node("test", test)\
-    .add_edge(START, "test")\
-    .set_finish_point("test")\
-    .compile()
+compiled_graph = (
+    StateGraph(input=Input, output=Output)
+      # pass the invoker directly—LangGraph will `await graphA_node(state)`
+      .add_node("call_graphA", graphA_node)
+      .add_edge(START, "call_graphA")
+      .set_finish_point("call_graphA")
+      .compile()
+)
