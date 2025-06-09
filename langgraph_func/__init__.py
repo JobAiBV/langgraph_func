@@ -8,8 +8,7 @@ except metadata.PackageNotFoundError:  # pragma: no cover - package not installe
     __version__ = "0.0.0"
 
 from langgraph_func.graph_helpers.call_subgraph import (
-    call_azure_function,
-    call_subgraph,
+    AzureFunctionInvoker,
     FUNCTION_KEY,
     FunctionKeySpec,
 )
@@ -26,8 +25,7 @@ from langgraph_func.yml_config.models import FuncAppConfig
 from langgraph_func.yml_config.loader import load_funcapp_config
 
 __all__ = [
-    "call_azure_function",
-    "call_subgraph",
+    "AzureFunctionInvoker",
     "FUNCTION_KEY",
     "FunctionKeySpec",
     "parse_json",
