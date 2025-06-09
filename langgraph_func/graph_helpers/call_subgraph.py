@@ -21,7 +21,7 @@ class AzureFunctionInvoker:
         *,
         function_path: str,
         base_url: str,
-        input_field_map: Optional[Dict[str, str]] = None,
+        input_field_map: Dict[str, str],
         output_field_map: Optional[Dict[str, str]] = None,
         auth_key: AuthKey = None,
         timeout_seconds: Optional[float] = None,
@@ -33,7 +33,6 @@ class AzureFunctionInvoker:
         self.timeout       = timeout_seconds
 
     def __call__(self, payload: BaseModel) -> Dict[str, Any]:
-        # 1) Build URL + auth-code (unchanged) …
         url = self.endpoint_url
         if self.auth_key is FunctionKeySpec.INTERNAL:
             key = FUNCTION_KEY.get(None)
@@ -42,24 +41,38 @@ class AzureFunctionInvoker:
         if key:
             url = f"{url}?code={key}"
 
-        # 2) Map inputs: getattr on the BaseModel
-        if self.input_map:
-            missing = [field for field in self.input_map if not hasattr(payload, field)]
-            if missing:
-                raise KeyError(f"Missing required input attribute(s): {', '.join(missing)}")
+        body: Dict[str, Any] = {}
 
-            body: Dict[str, Any] = {}
-            for local_name, remote_name in self.input_map.items():
-                body[remote_name] = getattr(payload, local_name)
-        else:
-            # dump entire model (pydantic v2+)
-            if hasattr(payload, "model_dump"):
-                body = payload.model_dump(exclude_none=True)
-            else:
-                # pydantic v1 fallback
-                body = payload.dict(exclude_none=True)
+        # Only include explicitly mapped fields
+        missing = [field for field in self.input_map if not hasattr(payload, field)]
+        if missing:
+            raise KeyError(f"Missing required input attribute(s): {', '.join(missing)}")
+
+        for local_name, remote_name in self.input_map.items():
+            body[remote_name] = getattr(payload, local_name)
+
 
         logger.debug(f"[AzureFunctionInvoker] POST {url} with payload {body}")
+
+        try:
+            resp = requests.post(url, json=body, timeout=self.timeout)
+            resp.raise_for_status()
+            raw = resp.json()
+        except requests.RequestException as e:
+            logger.error(f"[AzureFunctionInvoker] HTTP error: {e}")
+            raise RuntimeError(f"Function call failed: {e}")
+        except ValueError as e:
+            logger.error(f"[AzureFunctionInvoker] JSON decode error: {e}")
+            raise RuntimeError(f"Invalid JSON from Function: {e}")
+
+        if self.output_map:
+            return {
+                local_name: raw.get(remote_name)
+                for remote_name, local_name in self.output_map.items()
+            }
+        else:
+            return raw
+
 
         # 3) Call + parse JSON (unchanged) …
         try:
