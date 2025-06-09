@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "langgraph_func"
-version = "0.3.1"
+version = "0.3.2"
 description = "LangGraph Azure Function Agents"
 authors = ["job van Creij jobvancreij@gmail.com"]
 packages = [
