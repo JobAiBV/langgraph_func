@@ -79,17 +79,25 @@ Deploy with `func azure functionapp publish <APP_NAME>`.
 ## Calling Subgraphs
 
 ```python
-from langgraph_func.graph_helpers.call_subgraph import call_subgraph, FunctionKeySpec
-
-def test(state, **kwargs):
-    output = call_subgraph(
-        state=state,
-        function_path="blueprint_a/graphA",
-        payload_builder=lambda s: {"input_text": s.input_text},
-        base_url=kwargs.get("function_base_url"),
-        function_key=FunctionKeySpec.INTERNAL
-    )
-    return {"child_update": output["update"]}
+class Input(BaseModel):
+    input_text: str
+class Output(BaseModel):
+    child_update: Optional[str] = None
+# create one invoker instance
+subgraph = AzureFunctionInvoker(
+    function_path="blueprint_a/graphA",
+    base_url=settings.function_base_url,
+    input_field_map={"input_text": "text"},
+    output_field_map={"updates": "child_update"},
+    auth_key=FunctionKeySpec.INTERNAL,
+)
+compiled_graph = (
+    StateGraph(input=Input, output=Output)
+      .add_node("call_graphA", subgraph)
+      .add_edge(START, "call_graphA")
+      .set_finish_point("call_graphA")
+      .compile()
+)
 ```
 
 ## Documentation
