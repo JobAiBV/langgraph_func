@@ -1,0 +1,1 @@
+RETURN_VALID_JSON = """Let op: geef **alleen** het JSON-object terug, zonder enige toelichting, uitleg, markdown, of extra leestekens. De output moet direct verwerkt kunnen worden door een JSON-parser."""

@@ -1,0 +1,12 @@
+
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "FUNCTION_BASE_URL": "http://localhost:7072/api/",
+    "AUTH_MODE": "function",
+    "LOG_LEVEL": "DEBUG"
+
+  },
+  "ConnectionStrings": {}
+}

@@ -1,0 +1,29 @@
+swagger:
+  title: Test Function App
+  version: 1.0.0-beta
+  auth: FUNCTION
+  ui_route: docs
+
+blueprints:
+  blueprint_a:
+    path: blueprint_a
+    description: |
+      This blueprint, “test_blueprint”, is responsible for handling core
+      graph operations in the testing environment. It groups together
+      related graphs and defines their shared authentication method.
+    graphs:
+      graphA:
+        path: graphA
+        source: graphs.graph
+        auth: FUNCTION
+        description: |
+          GraphA ingests raw data from the primary “graph” source,
+          applies transformation logic, and outputs structured
+          results for downstream processes.
+      parent_graph:
+        path: parentGraph
+        source: graphs.parent_graph
+        auth: FUNCTION
+        description: |
+          Test calling a subgraph from a graph
+  

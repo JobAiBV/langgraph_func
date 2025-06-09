@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>API Docs</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const openapiUrl = code ? `/api/openapi.json?code=${code}` : "/api/openapi.json";
+
+      if (code) {
+        localStorage.setItem("function_key", code);
+      }
+
+      SwaggerUIBundle({
+        url: openapiUrl,
+        dom_id: "#swagger-ui",
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+        requestInterceptor: (req) => {
+          const key = localStorage.getItem("function_key");
+          if (key && !req.url.includes("code=")) {
+            const url = new URL(req.url);
+            url.searchParams.set("code", key);
+            req.url = url.toString();
+          }
+          return req;
+        }
+      });
+    </script>
+  </body>
+</html>
