@@ -14,18 +14,18 @@ class Output(BaseModel):
     child_update: Optional[str] = None
 
 # create one invoker instance
-graphA_node = AzureFunctionInvoker[Input](
+subgraph = AzureFunctionInvoker(
     function_path="blueprint_a/graphA",
     base_url=settings.function_base_url,
-    payload_builder=lambda s: {"input_text": s.input_text},
-    function_key=FunctionKeySpec.INTERNAL,
-    timeout=10.0
+    input_field_map={"input_text": "text"},
+    output_field_map={"updates": "child_update"},
+    auth_key=FunctionKeySpec.INTERNAL,
 )
+
 
 compiled_graph = (
     StateGraph(input=Input, output=Output)
-      # pass the invoker directly—LangGraph will `await graphA_node(state)`
-      .add_node("call_graphA", graphA_node)
+      .add_node("call_graphA", subgraph)
       .add_edge(START, "call_graphA")
       .set_finish_point("call_graphA")
       .compile()

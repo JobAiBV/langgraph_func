@@ -5,11 +5,11 @@ from typing import Optional
 
 
 class Input(BaseModel):
-    input_text: str
+    text: str
 
 
 class Output(BaseModel):
-    child_update: Optional[str] = None
+    updates: Optional[str] = None
 
 
 class MergedState(Input, Output):
@@ -22,7 +22,7 @@ def test(state: MergedState) -> dict:
     Wrapper function to invoke the subgraph (func_title_extractor) via Azure Function.
     """
     return {
-        "child_update": "okd2"
+        "updates": state.text * 2
     }
 
 

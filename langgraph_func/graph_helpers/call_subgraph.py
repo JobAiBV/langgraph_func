@@ -1,72 +1,83 @@
 import requests
 from urllib.parse import urljoin
-from typing import TypeVar, Union, Generic, Dict, Optional
-from pydantic import BaseModel
-from langgraph_func.logger import get_logger
-from typing import Callable, Any
-from contextvars import ContextVar
+from typing import Dict, Optional, Any
 from enum import Enum, auto
+from contextvars import ContextVar
+from langgraph_func.logger import get_logger
 
 FUNCTION_KEY: ContextVar[str] = ContextVar("FUNCTION_KEY")
-
-class FunctionKeySpec(Enum):
-    """If you pass this as function_key, we’ll use INTERNAL_KEY_CONTEXT."""
-    INTERNAL = auto()
-
-KeyArg = Union[FunctionKeySpec, str, None]
 logger = get_logger()
 
-T = TypeVar("T", bound=BaseModel)
+class FunctionKeySpec(Enum):
+    INTERNAL = auto()  # pull key from context at call-time
 
-class AzureFunctionInvoker(Generic[T]):
-    """
-    A callable node that invokes an Azure Function synchronously
-    via HTTP POST and returns its JSON payload.
-    """
+AuthKey = Optional[str]  # literal key, or INTERNAL via the special enum
+
+from pydantic import BaseModel
+
+class AzureFunctionInvoker:
     def __init__(
         self,
+        *,
         function_path: str,
         base_url: str,
-        payload_builder: Callable[[T], Dict[str, Any]],
-        function_key: Optional[FunctionKeySpec] = None,
-        timeout: Optional[float] = None,
+        input_field_map: Optional[Dict[str, str]] = None,
+        output_field_map: Optional[Dict[str, str]] = None,
+        auth_key: AuthKey = None,
+        timeout_seconds: Optional[float] = None,
     ):
-        self.function_path = function_path
-        self.base_url = base_url.rstrip("/") + "/"
-        self.payload_builder = payload_builder
-        self.function_key = function_key
-        self.timeout = timeout
+        self.endpoint_url  = urljoin(base_url.rstrip("/") + "/", function_path.lstrip("/"))
+        self.input_map     = input_field_map
+        self.output_map    = output_field_map
+        self.auth_key      = auth_key
+        self.timeout       = timeout_seconds
 
-    def __call__(self, state: T) -> Dict[str, Any]:
-        """
-        Build payload from `state`, POST to the Function, and return the parsed JSON.
-        This is a blocking call; if you’re in an async context wrap it with asyncio.to_thread.
-        """
-        # build URL
-        url = urljoin(self.base_url, self.function_path.lstrip("/"))
-        # append key if present in context
-        if self.function_key is FunctionKeySpec.INTERNAL:
+    def __call__(self, payload: BaseModel) -> Dict[str, Any]:
+        # 1) Build URL + auth-code (unchanged) …
+        url = self.endpoint_url
+        if self.auth_key is FunctionKeySpec.INTERNAL:
             key = FUNCTION_KEY.get(None)
         else:
-            key = self.function_key if isinstance(self.function_key, str) else None
-
+            key = self.auth_key
         if key:
             url = f"{url}?code={key}"
 
-        # build JSON payload
-        payload = self.payload_builder(state)
-        logger.debug(f"[AzureFunctionInvoker] POST {url} with payload {payload}")
+        # 2) Map inputs: getattr on the BaseModel
+        if self.input_map:
+            missing = [field for field in self.input_map if not hasattr(payload, field)]
+            if missing:
+                raise KeyError(f"Missing required input attribute(s): {', '.join(missing)}")
 
-        # call and validate
+            body: Dict[str, Any] = {}
+            for local_name, remote_name in self.input_map.items():
+                body[remote_name] = getattr(payload, local_name)
+        else:
+            # dump entire model (pydantic v2+)
+            if hasattr(payload, "model_dump"):
+                body = payload.model_dump(exclude_none=True)
+            else:
+                # pydantic v1 fallback
+                body = payload.dict(exclude_none=True)
+
+        logger.debug(f"[AzureFunctionInvoker] POST {url} with payload {body}")
+
+        # 3) Call + parse JSON (unchanged) …
         try:
-            resp = requests.post(url, json=payload, timeout=self.timeout)
+            resp = requests.post(url, json=body, timeout=self.timeout)
             resp.raise_for_status()
-            data = resp.json()
+            raw = resp.json()
         except requests.RequestException as e:
-            logger.error(f"[AzureFunctionInvoker] Request failed: {e}")
-            raise RuntimeError(f"Azure Function call failed: {e}")
+            logger.error(f"[AzureFunctionInvoker] HTTP error: {e}")
+            raise RuntimeError(f"Function call failed: {e}")
         except ValueError as e:
-            logger.error(f"[AzureFunctionInvoker] Invalid JSON response: {e}")
-            raise RuntimeError(f"Invalid JSON from Azure Function: {e}")
+            logger.error(f"[AzureFunctionInvoker] JSON decode error: {e}")
+            raise RuntimeError(f"Invalid JSON from Function: {e}")
 
-        return data
+        # 4) Map outputs (same as before) …
+        if self.output_map:
+            return {
+                local_name: raw.get(remote_name)
+                for remote_name, local_name in self.output_map.items()
+            }
+        else:
+            return raw
