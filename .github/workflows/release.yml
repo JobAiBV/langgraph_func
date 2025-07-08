@@ -15,10 +15,6 @@ permissions:
   contents: write
   packages: write
 
-# ─── Define your docs build steps once ─────────────────────────────────────
-# We’ll anchor these two maps and then reuse them below.
-# The names (&install-docs, &build-docs) are arbitrary YAML anchor keys.
-
 jobs:
   bump-and-publish:
     runs-on: ubuntu-latest
@@ -69,7 +65,7 @@ jobs:
           git tag "v$NEW_VER"
           git push origin HEAD --follow-tags
 
-      # ─── Docs steps (anchored) ─────────────────────────
+      # ─── Docs build steps ─────────────────────────────
       - name: Install docs dependencies
         run: |
           pip install poetry
@@ -79,16 +75,17 @@ jobs:
         run: |
           poetry run sphinx-build \
             -b html \
+            -W \
             -c docs/source \
             docs/source \
             docs/_build/html
 
-      # now copy it into your package before building
       - name: Copy docs into package
         run: |
           mkdir -p langgraph_func/docs_html
           cp -r docs/_build/html/* langgraph_func/docs_html/
 
+      # ─── Build and publish ───────────────────────────
       - name: Build distribution
         run: poetry build
 
@@ -110,8 +107,7 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
-
-
+      # ─── Deploy docs to GitHub Pages ─────────────────
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -120,8 +116,4 @@ jobs:
           publish_branch: gh-pages
           user_name: 'github-actions'
           user_email: 'github-actions@github.com'
-
-
-
-
-
+          force_orphan: true
