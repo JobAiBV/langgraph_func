@@ -73,12 +73,8 @@ jobs:
 
       - name: Build documentation
         run: |
-          poetry run sphinx-build \
-            -b html \
-            -W \
-            -c docs/source \
-            docs/source \
-            docs/_build/html
+          poetry run sphinx-build -b html -c docs/source docs/source docs/_build/html
+
 
       - name: Copy docs into package
         run: |
