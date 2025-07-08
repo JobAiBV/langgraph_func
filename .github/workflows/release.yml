@@ -21,8 +21,7 @@ jobs:
     if: >
       (
         github.event_name == 'push' &&
-        github.ref == 'refs/heads/main' &&
-        github.actor != 'github-actions'
+        github.ref == 'refs/heads/main'
       ) || github.event_name == 'workflow_dispatch'
 
     steps:
@@ -74,7 +73,6 @@ jobs:
       - name: Build documentation
         run: |
           poetry run sphinx-build -b html -c docs/source docs/source docs/_build/html
-
 
       - name: Copy docs into package
         run: |
